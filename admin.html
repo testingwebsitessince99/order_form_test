@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+        background: #fafafa;
+        max-width: 900px;
+        margin: auto;
+      }
+      input {
+        padding: 6px;
+        margin-right: 10px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background: white;
+      }
+      th, td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background: #eee;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Admin Dashboard: Order Lookup</h2>
+
+    <label>
+      Customer Name: <input type="text" id="customerInput">
+    </label>
+    <label>
+      Delivery Date: <input type="date" id="dateInput">
+    </label>
+    <button onclick="searchOrders()">Search</button>
+
+    <div id="results"></div>
+
+    <script>
+      function searchOrders() {
+        const customer = document.getElementById('customerInput').value.trim().toLowerCase();
+        const date = document.getElementById('dateInput').value;
+
+        google.script.run
+          .withSuccessHandler(showResults)
+          .searchOrders({ customer, date });
+      }
+
+      function showResults(data) {
+        if (!data.length) {
+          document.getElementById('results').innerHTML = "<p>No results found.</p>";
+          return;
+        }
+
+        const headers = Object.keys(data[0]);
+        let html = "<table><tr>";
+        headers.forEach(h => html += `<th>${h}</th>`);
+        html += "</tr>";
+
+        data.forEach(row => {
+          html += "<tr>";
+          headers.forEach(h => html += `<td>${row[h]}</td>`);
+          html += "</tr>";
+        });
+
+        html += "</table>";
+        document.getElementById('results').innerHTML = html;
+      }
+    </script>
+  </body>
+</html>
