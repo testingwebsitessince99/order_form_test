@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Form</title>
+<style>
+  /* ── RESET & COLORS ───────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+  html, body { width:100%; }
+  :root {
+    --bg: #121e33;
+    --panel: #f9f2e8;
+    --accent: #f5a78d;
+    --text: #121e33;
+  }
+
+  /* ── MOBILE BY DEFAULT ────────────────────────────────────── */
+  html { font-size: 24px;            /* bump this up or down */ }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+  }
+  .form-container {
+    background: var(--panel);
+    width: 100%;
+    padding: 16px;
+    border-radius: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin: 0 auto;
+  }
+  input[type="text"],
+  input[type="date"],
+  input.item-qty {
+    width: 100%;
+    font-size: 1.2rem;
+    padding: 12px;
+    margin-bottom: 16px;
+    border: 2px solid var(--accent);
+    border-radius: 6px;
+  }
+  .submit-btn {
+    width: 100%;
+    font-size: 1.2rem;
+    padding: 16px;
+    background: var(--accent);
+    color: var(--panel);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  /* ── DESKTOP OVERRIDES ────────────────────────────────────── */
+  @media (min-width: 601px) {
+    html { font-size: 16px !important; }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .form-container {
+      width: 600px;
+      padding: 24px;
+      border-radius: 12px;
+      margin: 32px auto;
+    }
+    input[type="text"],
+    input[type="date"],
+    input.item-qty {
+      font-size: 1rem !important;
+      padding: 8px !important;
+      margin-bottom: 16px;
+    }
+    .submit-btn {
+      font-size: 1rem !important;
+      padding: 12px !important;
+    }
+  }
+
+  /* ── COMMON STRUCTURE ─────────────────────────────────────── */
+  .logo-container { text-align: center; margin-bottom: 16px; }
+  .logo-container img { max-width: 200px; height: auto; }
+  h1 { font-size: 1.5rem; color: var(--text); text-align: center; margin-bottom:16px; }
+  .field-group { margin-bottom:0; }
+  label { display:block; margin-bottom:4px; color:var(--text); }
+  .category { margin-top:24px; }
+  .category-title {
+    font-size:1.1rem; color:var(--text);
+    border-bottom:2px solid var(--accent);
+    padding-bottom:4px; margin-bottom:8px;
+  }
+  .item-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; }
+  .item-name {
+    flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    color:var(--text);
+  }
+  input.item-qty { flex-shrink:0; width:60px; margin-left:16px; }
+</style>
+
+  </head>
+
+  <body>
+    <div class="form-container">
+      <!-- Logo placeholder -->
+      <div class="logo-container">
+        <img src="https://i.imgur.com/32rpNZc.png" alt="Company Logo" />
+      </div>
+
+      <h1>Place Your Order</h1>
+
+      <div class="field-group">
+        <label for="customerName">Customer Name</label>
+        <input id="customerName" type="text" placeholder="Enter name" />
+      </div>
+      <div class="field-group">
+        <label for="deliveryDate">Delivery Date</label>
+        <input id="deliveryDate" type="date" />
+      </div>
+
+      <div id="products"></div>
+
+      <button class="submit-btn" onclick="submitOrder()">Submit Order</button>
+    </div>
+
+    <script>
+      let productData = {};
+      function buildForm(categories) {
+        productData = categories;
+        const container = document.getElementById('products');
+        container.innerHTML = '';
+        Object.keys(categories).forEach(cat => {
+          const section = document.createElement('div');
+          section.className = 'category';
+          section.innerHTML = `<div class="category-title">${cat}</div>`;
+          categories[cat].forEach(prod => {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+              <div class="item-name">${prod}</div>
+              <input
+                class="item-qty"
+                type="text"
+                id="qty-${prod}"
+                placeholder="0"
+              />
+            `;
+            section.appendChild(row);
+          });
+          container.appendChild(section);
+        });
+      }
+
+      function submitOrder() {
+        const name = document.getElementById('customerName').value.trim();
+        const date = document.getElementById('deliveryDate').value;
+        if (!name || !date) {
+          alert('Please fill in name & date.');
+          return;
+        }
+        const quantities = {};
+        Object.values(productData).flat().forEach(prod => {
+          const v = document.getElementById(`qty-${prod}`).value;
+          if (v) quantities[prod] = v;
+        });
+
+        google.script.run
+          .withSuccessHandler(() => alert('Order submitted!'))
+          .submitOrder({ customerName: name, deliveryDate: date, quantities });
+      }
+
+      google.script.run.withSuccessHandler(buildForm).getProducts();
+    </script>
+  </body>
+</html>
